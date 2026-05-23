@@ -5,8 +5,6 @@
 🏆 **2nd Place — Big Data & AI Trends Market 2026**  
 University of Minnesota Carlson School of Management, MSBA Program
 
-> This project repository is created in partial fulfillment of the requirements for the Big Data Analytics course offered by the Master of Science in Business Analytics program at the Carlson School of Management, University of Minnesota.
-
 This repository is a public GitHub version of a collaborative team project developed by a six-person student team. It preserves the original project architecture and demo workflow while updating the repository for public portfolio review, reproducible local setup, synthetic demo data, and current app behavior.
 
 ---
