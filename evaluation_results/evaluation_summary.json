@@ -1,0 +1,47 @@
+{
+  "evaluation_name": "offline_ragas_mode2",
+  "evaluated_questions": 12,
+  "full_set_means": {
+    "faithfulness": 0.4434,
+    "answer_relevancy": 0.7830,
+    "context_precision": 0.7153,
+    "context_recall": 0.3819
+  },
+  "selected_public_demo_cases": [
+    {
+      "case": "multi_condition_synthesis",
+      "faithfulness": 0.8261,
+      "answer_relevancy": 0.9640,
+      "context_precision": 1.0,
+      "context_recall": 1.0,
+      "overall": "High"
+    },
+    {
+      "case": "hepatitis_condition_linkage",
+      "faithfulness": 0.7500,
+      "answer_relevancy": 0.8981,
+      "context_precision": 1.0,
+      "context_recall": 1.0,
+      "overall": "High"
+    },
+    {
+      "case": "medication_role_explanation",
+      "faithfulness": 0.5000,
+      "answer_relevancy": 0.8176,
+      "context_precision": 1.0,
+      "context_recall": 1.0,
+      "overall": "Medium"
+    }
+  ],
+  "overall_rule": {
+    "High": "faithfulness >= 0.75 and answer_relevancy >= 0.75",
+    "Medium": "faithfulness >= 0.50 and answer_relevancy >= 0.50",
+    "Low": "otherwise"
+  },
+  "disclosure": "The public demo shows selected cases rather than average performance. Retrieved clinical-note text and original note identifiers are not included in this summary.",
+  "limitations": [
+    "Offline RAGAS scores do not establish clinical safety or clinical effectiveness.",
+    "The evaluation set is small and should be expanded before making general performance claims.",
+    "Selected public cases are not representative of the full-set means."
+  ]
+}
