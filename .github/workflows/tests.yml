@@ -15,3 +15,5 @@ jobs:
           cache: pip
       - run: python -m pip install -r requirements-dev.txt
       - run: pytest
+        env:
+          PYTHONPATH: ${{ github.workspace }}
