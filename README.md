@@ -32,7 +32,12 @@ The system uses a FAISS vector store for semantic similarity search, SQLite for 
 
 [Open the no-sign-in interactive demo](https://kojunghsu.github.io/clinical-note-rag-intelligence/)
 
-The static walkthrough replays curated outputs from the included synthetic dataset and demonstrates intent routing, structured and semantic retrieval paths, grounded answers, abstention behavior, and the Evidence Vault. It does not make API calls or display real clinical data. A separate evaluation section presents metric-only summaries of three selected offline RAGAS cases without exposing source clinical text.
+The static walkthrough reproduces the Streamlit interface with three selected
+offline evaluation cases. Each case keeps its measured question, answer,
+`faithfulness`, `answer_relevancy`, and derived `Overall` label. Evidence Vault
+excerpts are condensed and deidentified from the retrieved contexts for safe
+public demonstration. The page makes no API calls and does not expose source
+clinical notes or original note identifiers.
 
 ### Video Walkthrough
 
@@ -103,6 +108,7 @@ flowchart TD
 .
 ├── app.py                              # Streamlit web application
 ├── requirements.txt                    # Python dependencies
+├── requirements-dev.txt                # Lightweight test dependency
 ├── .env.example                        # Environment variable template; no API keys included
 ├── .gitignore                          # Excludes secrets, real data, cache, logs, and local outputs
 ├── clinicalrag_demo.png                # App demo screenshot shown in this README
@@ -110,7 +116,11 @@ flowchart TD
 ├── slide.pdf                           # Final presentation slide deck exported as PDF
 ├── ragas_evaluation.ipynb              # Offline RAGAS test generation and evaluation workflow
 ├── evaluation_results/
-│   └── README.md                       # Notes for generated local evaluation outputs
+│   ├── README.md                       # Notes for generated local evaluation outputs
+│   └── evaluation_summary.json         # Public metric-only evaluation summary
+├── tests/
+│   ├── test_demo.py                    # Public demo integrity checks
+│   └── test_live_ragas.py              # Overall-label threshold checks
 ├── data/
 │   └── sample/
 │       ├── README.md                   # Synthetic sample data notice and usage notes
@@ -332,11 +342,46 @@ The RAGAS metric panel is not shown for that response.
 
 The repository also includes `ragas_evaluation.ipynb` for offline experimentation, auto-generated question testing, and batch RAGAS evaluation workflows.
 
+### Public Evaluation Summary
+
+The repository includes a metric-only summary at:
+
+```text
+evaluation_results/evaluation_summary.json
+```
+
+It records the 12-question evaluation size, full-set means, selected-case
+metrics, scoring definitions, and limitations without publishing retrieved
+clinical-note text. Across the full set:
+
+| Metric | Mean |
+|---|---:|
+| Faithfulness | 0.4434 |
+| Answer relevancy | 0.7830 |
+| Context precision | 0.7153 |
+| Context recall | 0.3819 |
+
+The public demo intentionally shows selected cases and should not be interpreted
+as the average performance of the full evaluation set.
+
+### Automated Checks
+
+Lightweight tests verify the RAGAS `Overall` thresholds and the integrity of the
+static demo:
+
+```bash
+python3 -m pip install -r requirements-dev.txt
+pytest
+```
+
+The same checks run automatically through GitHub Actions on pushes and pull
+requests.
+
 ---
 
 ## Limitations
 
-- The system is a course project prototype and is not intended for clinical deployment.
+- The system is a portfolio prototype and is not intended for clinical deployment.
 - Generated answers depend on the quality and coverage of retrieved notes.
 - RAG reduces hallucination risk but cannot eliminate it entirely.
 - The RAGAS-based `Overall` label is a simple threshold-based quality indicator, not a statistically calibrated clinical confidence score.
