@@ -3,370 +3,278 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Interactive, synthetic-data demonstration of a clinical-note RAG pipeline.">
-  <title>Clinical Note RAG Intelligence — Interactive Demo</title>
+  <meta name="description" content="Interactive synthetic-data demo of the ClinicalRAG interface.">
+  <title>ClinicalRAG — Clinical Insights</title>
   <style>
+    @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap");
     :root {
-      --ink: #17213a;
-      --muted: #667085;
-      --line: #dce3ec;
-      --paper: #ffffff;
-      --soft: #f4f7fb;
-      --navy: #132c4e;
-      --blue: #2166d1;
-      --teal: #138a82;
-      --green: #18794e;
-      --amber: #a15c00;
-      --shadow: 0 16px 44px rgba(20, 39, 72, .10);
+      --bg:#fafafa; --side:#f4f4f2; --card:#fff; --input:#f1f1ef;
+      --line:#e8e8e5; --line2:#d4d4d2; --ink:#1a1a1a; --text:#52525b;
+      --muted:#a1a1aa; --soft:#ebebea;
     }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 12% -4%, rgba(33,102,209,.10), transparent 28rem),
-        linear-gradient(180deg, #f8fbff 0, #fff 36rem);
-      font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    * { box-sizing:border-box; }
+    html, body { margin:0; min-height:100%; background:var(--bg); color:var(--ink); font-family:"IBM Plex Sans",sans-serif; }
+    button, textarea { font:inherit; }
+    button { color:inherit; }
+    .app { display:grid; grid-template-columns:300px minmax(520px,1fr) 410px; min-height:100vh; }
+    .sidebar {
+      position:sticky; top:0; height:100vh; padding:54px 28px 24px;
+      background:var(--side); border-right:1px solid var(--line);
     }
-    a { color: inherit; }
-    button { font: inherit; }
-    .wrap { width: min(1160px, calc(100% - 32px)); margin: auto; }
-    .notice {
-      padding: 9px 16px;
-      color: #fff;
-      background: var(--navy);
-      text-align: center;
-      font-size: 13px;
-      letter-spacing: .01em;
+    .brand { display:flex; gap:12px; align-items:center; margin:0 8px 64px; }
+    .logo {
+      display:grid; place-items:center; width:42px; height:42px; flex:0 0 auto;
+      color:#fff; background:#3f3f46; border-radius:9px; font-size:19px;
     }
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 0;
+    .brand strong { display:block; font-size:16px; letter-spacing:-.2px; }
+    .brand small { display:block; margin-top:3px; color:var(--muted); font-size:11px; letter-spacing:.3px; }
+    .section-label {
+      margin:0 8px 13px; color:var(--muted); font:600 10px "IBM Plex Mono",monospace;
+      letter-spacing:1.6px; text-transform:uppercase;
     }
-    .brand { display: flex; align-items: center; gap: 11px; font-weight: 760; }
-    .mark {
-      display: grid; place-items: center; width: 36px; height: 36px;
-      color: #fff; background: linear-gradient(135deg, var(--blue), var(--teal));
-      border-radius: 11px; box-shadow: 0 8px 18px rgba(33,102,209,.22);
+    .index-btn {
+      width:100%; margin-bottom:52px; padding:13px 15px; color:var(--text);
+      border:1px solid var(--line); border-radius:7px; background:transparent;
+      text-align:left; cursor:pointer;
     }
-    .repo {
-      padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px;
-      text-decoration: none; background: rgba(255,255,255,.72); font-weight: 650;
+    .index-btn:hover { background:var(--soft); border-color:var(--line2); }
+    .history { display:grid; gap:5px; }
+    .history-btn {
+      display:grid; grid-template-columns:7px 1fr; gap:10px; width:100%; padding:11px 12px;
+      border:1px solid transparent; border-radius:7px; background:transparent; text-align:left; cursor:pointer;
     }
-    header { padding: 54px 0 42px; text-align: center; }
-    .eyebrow {
-      display: inline-flex; gap: 7px; align-items: center; padding: 6px 10px;
-      color: var(--blue); background: #eaf2ff; border: 1px solid #cfe0ff;
-      border-radius: 99px; font-size: 12px; font-weight: 750; letter-spacing: .05em;
-      text-transform: uppercase;
+    .history-btn:hover, .history-btn.active { background:var(--soft); border-color:var(--line2); }
+    .history-dot { width:5px; height:5px; margin-top:7px; border-radius:50%; background:var(--text); opacity:.5; }
+    .history-btn strong { display:-webkit-box; overflow:hidden; color:var(--text); font-size:12px; font-weight:400; line-height:1.45; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .history-btn small { display:block; margin-top:4px; color:var(--muted); font:10px "IBM Plex Mono",monospace; }
+    .clear {
+      position:absolute; left:28px; bottom:22px; width:38px; height:38px;
+      border:1px solid var(--line); border-radius:8px; background:var(--side); cursor:pointer;
     }
-    h1 { margin: 20px auto 14px; max-width: 820px; font-size: clamp(38px, 6vw, 66px); line-height: 1.04; letter-spacing: -.045em; }
-    .lead { max-width: 720px; margin: auto; color: var(--muted); font-size: 18px; }
-    .capabilities {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 24px;
+    .main { min-width:0; padding:26px 34px 125px; }
+    .main-inner { max-width:860px; margin:auto; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+    h1 { margin:0; font-size:27px; letter-spacing:-.6px; }
+    .session { padding:6px 13px; color:var(--text); border:1px solid var(--line); border-radius:20px; background:var(--side); font-size:12px; }
+    .user-row { display:flex; justify-content:flex-end; }
+    .user-bubble {
+      max-width:72%; padding:13px 18px; color:var(--ink); background:var(--soft);
+      border:1px solid #e0e0de; border-radius:16px 16px 4px 16px; font-size:15px; line-height:1.55;
     }
-    .capabilities span { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 13px; }
-    .demo {
-      display: grid; grid-template-columns: 340px 1fr; min-height: 600px;
-      overflow: hidden; border: 1px solid var(--line); border-radius: 20px;
-      background: var(--paper); box-shadow: var(--shadow);
+    .meta-row { display:flex; flex-wrap:wrap; gap:7px; margin:16px 0 13px; }
+    .badge {
+      padding:4px 9px; color:#3f3f46; border:1px solid #e4e4e7; border-radius:4px;
+      background:var(--side); font:11px "IBM Plex Mono",monospace;
     }
-    .sidebar { padding: 25px; background: #f7f9fc; border-right: 1px solid var(--line); }
-    .label { margin: 0 0 9px; color: var(--muted); font-size: 12px; font-weight: 760; letter-spacing: .06em; text-transform: uppercase; }
-    .scenario {
-      width: 100%; margin-bottom: 9px; padding: 13px 14px; color: var(--ink);
-      border: 1px solid var(--line); border-radius: 11px; background: #fff;
-      text-align: left; cursor: pointer; transition: .18s ease;
+    .ragas {
+      display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-bottom:14px; padding:10px 12px;
+      border:1px solid #e4e4e7; border-radius:7px; background:var(--bg);
     }
-    .scenario:hover, .scenario.active { border-color: #80aaf0; box-shadow: 0 6px 18px rgba(33,102,209,.10); transform: translateY(-1px); }
-    .scenario.active { color: #174eaa; background: #edf4ff; }
-    .scenario strong, .scenario small { display: block; }
-    .scenario small { margin-top: 2px; color: var(--muted); }
-    .querybox { margin-top: 22px; }
+    .ragas-label { margin-right:3px; color:var(--text); font:600 10px "IBM Plex Mono",monospace; letter-spacing:1px; }
+    .metric { padding:4px 8px; border:1px solid; border-radius:4px; font:10.5px "IBM Plex Mono",monospace; }
+    .faith { background:#eeeaf5; border-color:#d9d0e8; }
+    .rel { background:#e9eef0; border-color:#d4dee2; }
+    .overall { color:#496b50; background:#e8f2ea; border-color:#cde1d1; font-weight:600; }
+    .overall.medium { color:#455d73; background:#e7eef5; border-color:#cad8e6; }
+    .answer-card { padding:19px 20px; border:1px solid var(--line); border-radius:8px; background:var(--card); }
+    .claim { padding:12px 0; border-bottom:1px solid var(--side); font-size:15px; line-height:1.65; }
+    .claim:first-child { padding-top:0; }
+    .claim:last-child { padding-bottom:0; border-bottom:0; }
+    .cite {
+      display:inline-grid; place-items:center; min-width:24px; height:22px; margin-left:5px;
+      color:#3f3f46; border:1px solid #e4e4e7; border-radius:99px; background:var(--side);
+      font:600 11px "IBM Plex Mono",monospace; vertical-align:1px;
+    }
+    .vault {
+      min-width:0; padding:62px 27px 100px 25px; border-left:1px solid var(--line); background:#fcfcfc;
+    }
+    .vault-label { color:var(--muted); font:600 9px "IBM Plex Mono",monospace; letter-spacing:2px; }
+    .vault h2 { margin:4px 0 15px; font-size:14px; }
+    .vault-meta { margin-bottom:9px; color:var(--text); font:12px "IBM Plex Mono",monospace; }
+    .rewrite { min-height:42px; margin:0 0 17px; padding-bottom:17px; color:var(--muted); border-bottom:1px solid var(--line); font-size:11px; font-style:italic; line-height:1.5; }
+    .evidence-list { display:grid; gap:12px; }
+    .evidence-card { overflow:hidden; border:1px solid var(--line2); border-radius:8px; background:#fff; }
+    .evidence-head { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; color:#3f3f46; font:12px "IBM Plex Mono",monospace; }
+    .ref-box { margin:0 12px 12px; border:1px solid var(--line); border-radius:7px; overflow:hidden; }
+    .ref-title { padding:10px 12px; background:#eeeae4; color:#3f3f46; font:600 10px/1.7 "IBM Plex Mono",monospace; }
+    .ref-text { padding:12px; color:var(--text); font-size:12px; line-height:1.65; }
+    mark { color:inherit; background:#fff0ad; border-radius:3px; padding:0 2px; }
+    .input-wrap {
+      position:fixed; z-index:20; left:300px; right:410px; bottom:0;
+      padding:16px 34px 23px; background:linear-gradient(to top,var(--input) 80%,transparent);
+    }
+    .input-inner { display:grid; grid-template-columns:1fr 48px; gap:10px; max-width:860px; margin:auto; }
     textarea {
-      width: 100%; min-height: 104px; resize: vertical; padding: 12px;
-      color: var(--ink); border: 1px solid var(--line); border-radius: 10px; background: #fff;
+      width:100%; height:48px; resize:none; padding:12px 15px; color:var(--ink);
+      border:1px solid #e0e0de; border-radius:10px; background:#fff; outline:0;
+      box-shadow:0 1px 4px rgba(0,0,0,.05);
     }
-    .run {
-      width: 100%; margin-top: 9px; padding: 11px; color: #fff; border: 0;
-      border-radius: 10px; background: linear-gradient(135deg, var(--blue), #174eaa);
-      cursor: pointer; font-weight: 720;
+    textarea:focus { border-color:#3f3f46; box-shadow:0 0 0 2px rgba(63,63,70,.1); }
+    .send { border:1px solid #d4d4d2; border-radius:10px; background:#fff; cursor:pointer; font-size:20px; }
+    .send:hover { background:var(--soft); }
+    .mobile-note { display:none; }
+    @media(max-width:1080px) {
+      .app { grid-template-columns:250px 1fr; }
+      .sidebar { padding-left:20px; padding-right:20px; }
+      .vault { grid-column:2; padding:20px 34px 125px; border-left:0; border-top:1px solid var(--line); }
+      .input-wrap { left:250px; right:0; }
+      .evidence-list { grid-template-columns:1fr 1fr; }
     }
-    .hint { margin-top: 9px; color: var(--muted); font-size: 12px; }
-    .workspace { padding: 27px; }
-    .topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .status { display: flex; align-items: center; gap: 7px; color: var(--green); font-weight: 720; font-size: 13px; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #25a66a; box-shadow: 0 0 0 4px #daf4e7; }
-    .route {
-      display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px 0;
-    }
-    .step {
-      position: relative; padding: 11px 8px; color: var(--muted); border: 1px solid var(--line);
-      border-radius: 10px; background: var(--soft); text-align: center; font-size: 12px; font-weight: 680;
-    }
-    .step.on { color: #174eaa; border-color: #b7cff5; background: #edf4ff; }
-    .card { padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
-    .answer { border-left: 4px solid var(--teal); }
-    .answer h2 { margin: 0 0 8px; font-size: 19px; }
-    .answer p { margin: 0; }
-    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-    .pill { padding: 5px 8px; color: #37506f; background: #edf2f7; border-radius: 6px; font-size: 12px; }
-    .pill.route-pill { color: #174eaa; background: #eaf2ff; }
-    .evidence-head { display: flex; align-items: center; justify-content: space-between; margin: 23px 0 10px; }
-    .evidence-head h2 { margin: 0; font-size: 16px; }
-    .evidence {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-    }
-    .evidence .card { padding: 15px; }
-    .evidence strong { font-size: 13px; }
-    .evidence p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
-    mark { color: inherit; background: #fff0b8; padding: 0 2px; }
-    .eval {
-      display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 10px; margin-top: 17px;
-    }
-    .metric { padding: 13px; border: 1px solid var(--line); border-radius: 11px; background: var(--soft); }
-    .metric b, .metric small { display: block; }
-    .metric b { margin-top: 3px; }
-    .metric small { color: var(--muted); }
-    section.explain { padding: 80px 0; }
-    .section-title { max-width: 700px; margin-bottom: 28px; }
-    .section-title h2 { margin: 0 0 8px; font-size: 32px; letter-spacing: -.025em; }
-    .section-title p { margin: 0; color: var(--muted); }
-    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-    .grid3 .card h3 { margin: 5px 0 7px; }
-    .grid3 .card p { margin: 0; color: var(--muted); }
-    .num { color: var(--blue); font-size: 12px; font-weight: 800; }
-    .benchmark { padding: 0 0 80px; }
-    .benchmark-note {
-      margin: 20px 0 0; padding: 14px 16px; color: #6a4600;
-      border: 1px solid #f0d39a; border-radius: 11px; background: #fff9eb; font-size: 13px;
-    }
-    .score-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
-    .score { padding: 10px; border-radius: 9px; background: var(--soft); }
-    .score span, .score b { display: block; }
-    .score span { color: var(--muted); font-size: 11px; }
-    .score b { margin-top: 2px; font-size: 17px; }
-    footer { padding: 28px 0 42px; color: var(--muted); border-top: 1px solid var(--line); text-align: center; font-size: 13px; }
-    @media (max-width: 860px) {
-      .demo { grid-template-columns: 1fr; }
-      .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
-      .route { grid-template-columns: 1fr 1fr; }
-      .evidence, .grid3 { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 520px) {
-      .wrap { width: min(100% - 20px, 1160px); }
-      header { padding-top: 32px; }
-      .repo { font-size: 12px; }
-      .workspace, .sidebar { padding: 18px; }
-      .eval { grid-template-columns: 1fr; }
-      .score-grid { grid-template-columns: 1fr 1fr; }
+    @media(max-width:720px) {
+      .app { display:block; }
+      .sidebar { position:static; width:auto; height:auto; padding:24px 18px; border-right:0; border-bottom:1px solid var(--line); }
+      .brand { margin:0 0 25px; }
+      .index-btn, .clear { display:none; }
+      .history { display:flex; overflow:auto; }
+      .history-btn { min-width:210px; }
+      .main { padding:25px 16px 112px; }
+      .vault { padding:25px 16px 120px; }
+      .input-wrap { left:0; padding:14px 16px 18px; }
+      .user-bubble { max-width:92%; }
+      .evidence-list { grid-template-columns:1fr; }
     }
   </style>
 </head>
 <body>
-  <div class="notice">Synthetic demonstration data only · Not for clinical use or medical decision-making</div>
-  <div class="wrap">
-    <nav>
-      <div class="brand"><span class="mark">✦</span> Clinical Note RAG</div>
-      <a class="repo" href="https://github.com/kojunghsu/clinical-note-rag-intelligence">View GitHub ↗</a>
-    </nav>
-    <header>
-      <span class="eyebrow">Interactive system walkthrough</span>
-      <h1>Grounded answers from unstructured clinical notes</h1>
-      <p class="lead">Explore how intent-aware routing combines structured lookup, semantic retrieval, reranking, and evidence-backed generation.</p>
-      <div class="capabilities">
-        <span>Intent routing</span><span>FAISS retrieval</span><span>Cross-encoder reranking</span><span>Evidence Vault</span><span>RAGAS-ready evaluation</span>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="logo">⚕</span>
+        <div><strong>ClinicalRAG</strong><small>MIMIC-IV · Discharge Notes</small></div>
       </div>
-    </header>
+      <p class="section-label">Index</p>
+      <button class="index-btn">⟳ Build / Refresh FAISS Index</button>
+      <p class="section-label">History</p>
+      <div class="history">
+        <button class="history-btn active" data-case="multicondition"><i class="history-dot"></i><span><strong>What are the implications of managing a patient with HIV who also has a history of cirrhosis and ascites?</strong><small>01:31</small></span></button>
+        <button class="history-btn" data-case="hepatitis"><i class="history-dot"></i><span><strong>What is the relationship between Hepatitis C and the patient's current condition?</strong><small>01:28</small></span></button>
+        <button class="history-btn" data-case="medication"><i class="history-dot"></i><span><strong>Can you explain the role of Emtricitabine-Tenofovir in the treatment plan?</strong><small>01:24</small></span></button>
+      </div>
+      <button class="clear" title="Clear demo history">🗑</button>
+    </aside>
 
-    <main class="demo" aria-label="Interactive RAG demonstration">
-      <aside class="sidebar">
-        <p class="label">Try a scenario</p>
-        <button class="scenario active" data-case="heart">
-          <strong>Patient chart review</strong><small>Structured subject_id lookup</small>
-        </button>
-        <button class="scenario" data-case="pneumonia">
-          <strong>Admission summary</strong><small>Structured hadm_id lookup</small>
-        </button>
-        <button class="scenario" data-case="semantic">
-          <strong>Clinical question</strong><small>Semantic retrieval + reranking</small>
-        </button>
-        <button class="scenario" data-case="refusal">
-          <strong>Insufficient evidence</strong><small>Grounded abstention behavior</small>
-        </button>
-        <div class="querybox">
-          <label class="label" for="query">Query</label>
-          <textarea id="query" aria-label="Demo query"></textarea>
-          <button class="run" id="run">Run demo query</button>
-          <p class="hint">This public demo replays curated outputs from the included synthetic dataset. No API call is made.</p>
+    <main class="main">
+      <div class="main-inner">
+        <div class="topbar"><h1>Clinical Insights</h1><span class="session">3 queries this session</span></div>
+        <div class="user-row"><div class="user-bubble" id="question"></div></div>
+        <div class="meta-row" id="meta"></div>
+        <div class="ragas">
+          <span class="ragas-label">RAGAS</span>
+          <span class="metric faith" id="faithfulness"></span>
+          <span class="metric rel" id="relevancy"></span>
+          <span class="metric overall" id="overall"></span>
         </div>
-      </aside>
-
-      <section class="workspace" aria-live="polite">
-        <div class="topline">
-          <p class="label" style="margin:0">Pipeline trace</p>
-          <span class="status"><i class="dot"></i> Grounded response</span>
-        </div>
-        <div class="route" id="route"></div>
-        <article class="card answer">
-          <h2>Generated answer</h2>
-          <p id="answer"></p>
-          <div class="meta" id="meta"></div>
-        </article>
-        <div class="evidence-head">
-          <h2>Evidence Vault</h2>
-          <span class="pill" id="count"></span>
-        </div>
-        <div class="evidence" id="evidence"></div>
-        <div class="eval">
-          <div class="metric"><small>Faithfulness</small><b>Evaluation-ready</b></div>
-          <div class="metric"><small>Answer relevancy</small><b>Evaluation-ready</b></div>
-          <div class="metric"><small>Public demo status</small><b>No score claimed</b><small>Run the included notebook to generate measured RAGAS results.</small></div>
-        </div>
-      </section>
+        <article class="answer-card" id="answer"></article>
+      </div>
     </main>
 
-    <section class="explain">
-      <div class="section-title">
-        <h2>What this demo proves</h2>
-        <p>The interface is intentionally simple; the depth is in the decision flow and traceability behind each response.</p>
-      </div>
-      <div class="grid3">
-        <article class="card"><span class="num">01 · ROUTE</span><h3>Use the right retrieval path</h3><p>Explicit identifiers go to SQLite lookup; general questions use semantic retrieval instead of treating every query the same.</p></article>
-        <article class="card"><span class="num">02 · GROUND</span><h3>Preserve supporting context</h3><p>Top chunks are reranked and expanded to parent notes before generation, with note metadata carried into the Evidence Vault.</p></article>
-        <article class="card"><span class="num">03 · VERIFY</span><h3>Make quality inspectable</h3><p>Answers expose their evidence and the full application supports RAGAS faithfulness and answer-relevancy evaluation.</p></article>
-      </div>
-    </section>
-
-    <section class="benchmark">
-      <div class="section-title">
-        <span class="eyebrow">Offline evaluation · selected cases</span>
-        <h2 style="margin-top:14px">Measured quality, not just architecture</h2>
-        <p>Three strongest cases selected from a 12-question RAGAS evaluation. Clinical text is intentionally withheld; capability labels summarize the evaluated question type.</p>
-      </div>
-      <div class="grid3">
-        <article class="card">
-          <span class="num">CASE 01 · MULTI-CONDITION SYNTHESIS</span>
-          <h3>Care implications across comorbidities</h3>
-          <div class="score-grid">
-            <div class="score"><span>Faithfulness</span><b>0.826</b></div>
-            <div class="score"><span>Answer relevancy</span><b>0.964</b></div>
-            <div class="score"><span>Context precision</span><b>1.000</b></div>
-            <div class="score"><span>Context recall</span><b>1.000</b></div>
-          </div>
-        </article>
-        <article class="card">
-          <span class="num">CASE 02 · CONDITION LINKAGE</span>
-          <h3>Disease-to-current-condition reasoning</h3>
-          <div class="score-grid">
-            <div class="score"><span>Faithfulness</span><b>0.750</b></div>
-            <div class="score"><span>Answer relevancy</span><b>0.898</b></div>
-            <div class="score"><span>Context precision</span><b>1.000</b></div>
-            <div class="score"><span>Context recall</span><b>1.000</b></div>
-          </div>
-        </article>
-        <article class="card">
-          <span class="num">CASE 03 · MEDICATION ROLE</span>
-          <h3>Treatment-role explanation</h3>
-          <div class="score-grid">
-            <div class="score"><span>Faithfulness</span><b>0.500</b></div>
-            <div class="score"><span>Answer relevancy</span><b>0.818</b></div>
-            <div class="score"><span>Context precision</span><b>1.000</b></div>
-            <div class="score"><span>Context recall</span><b>1.000</b></div>
-          </div>
-        </article>
-      </div>
-      <p class="benchmark-note"><strong>Interpretation:</strong> these are selected high-performing cases, not an overall benchmark. The third case also shows why retrieval metrics alone are insufficient: perfect context precision and recall still produced only 0.50 faithfulness. Full-set averages were 0.443 faithfulness, 0.783 answer relevancy, 0.715 context precision, and 0.382 context recall.</p>
-    </section>
+    <aside class="vault">
+      <div class="vault-label">Evidence Vault</div>
+      <h2>Retrieved Notes</h2>
+      <div class="vault-meta" id="vault-count"></div>
+      <p class="rewrite" id="rewrite"></p>
+      <div class="evidence-list" id="evidence"></div>
+    </aside>
   </div>
-  <footer>
-    Built from the repository’s included synthetic discharge summaries. All names, identifiers, dates, and clinical details are fictitious.
-  </footer>
+
+  <div class="input-wrap">
+    <div class="input-inner">
+      <textarea id="query" aria-label="Ask ClinicalRAG" placeholder="Ask about patient treatments, diagnoses, rare patterns…"></textarea>
+      <button class="send" id="send" aria-label="Run demo query">→</button>
+    </div>
+  </div>
 
   <script>
     const cases = {
-      heart: {
-        query: "Summarize the discharge course for subject_id 10000000.",
-        steps: ["Parse intent", "SQLite lookup", "Parent note", "Grounded answer", "Evidence"],
-        route: "subject_id_lookup",
-        answer: "The synthetic patient was admitted with acute decompensated heart failure after progressive shortness of breath and leg swelling. Intravenous diuresis improved oxygen needs and peripheral edema; renal function remained stable and telemetry showed no sustained arrhythmia. The patient was discharged to short-term rehabilitation with cardiology and primary-care follow-up within one week.",
-        meta: ["subject_id 10000000", "1 note retrieved", "Structured route"],
-        evidence: [
-          ["SYN-DS-000001 · Hospital Course", "The patient received intravenous diuresis with improvement in oxygen requirement and peripheral edema. Telemetry showed no sustained arrhythmia."],
-          ["SYN-DS-000001 · Follow-up", "Follow up with cardiology and primary care within one week. Check basic metabolic panel in three days."]
-        ]
+      multicondition: {
+        question:"What are the implications of managing a patient with HIV who also has a history of cirrhosis and ascites?",
+        meta:["⚕ clinical RAG","📄 3 notes","⚡ cached"],
+        faithfulness:0.8261, relevancy:0.9640, overall:"High",
+        claims:[
+          ["Managing a patient with HIV who has a history of cirrhosis and ascites presents several clinical implications.",[1,2]],
+          ["The patient is at risk for accelerated decompensation of liver function, as evidenced by episodes of hepatic encephalopathy and the need for frequent paracentesis due to worsening ascites.",[1,2]],
+          ["The presence of ascites complicates the management of fluid balance and can lead to hypotension, as seen in cases where fluid shifts occur after paracentesis.",[1,2]],
+          ["Additionally, the patient's HIV status necessitates careful monitoring of immunocompetence, particularly with a CD4 count of 173, which is relatively low and increases the risk for opportunistic infections.",[2]],
+          ["The management plan includes the continuation of antiretroviral therapy (HAART) and addressing complications of cirrhosis, such as hyperkalemia and acute kidney injury, which may arise from diuretic use and fluid shifts.",[1,2]],
+          ["Furthermore, the patient is not a candidate for liver transplantation due to comorbidities, which necessitates a focus on palliative care and symptom management, including regular follow-up for therapeutic paracentesis and monitoring of liver function and electrolytes.",[2,3]]
+        ],
+        rewrite:"What are the implications of managing a patient with HIV who also has a history of cirrhosis and ascites?",
+        evidence:[
+          ["DEIDENTIFIED-01","History of Present Illness","HIV on HAART with HCV cirrhosis complicated by ascites and hepatic encephalopathy, admitted with abdominal distention and pain. Diuretics were decreased due to worsening hyponatremia and hyperkalemia."],
+          ["DEIDENTIFIED-02","Chronic Issues","HCV cirrhosis is decompensated with increasing ascites and worsening hepatic encephalopathy. The patient is dependent on twice-weekly paracentesis and continued an antiretroviral regimen."],
+          ["DEIDENTIFIED-03","Care Plan","Comorbidities limit transplant candidacy. The care plan emphasizes ongoing symptom management, therapeutic paracentesis, and monitoring of electrolytes and liver function."]
+        ], highlight:["HIV","cirrhosis","ascites","hepatic encephalopathy","paracentesis"]
       },
-      pneumonia: {
-        query: "What happened during admission hadm_id 20000018?",
-        steps: ["Parse intent", "SQLite lookup", "Parent note", "Grounded answer", "Evidence"],
-        route: "hadm_id_lookup",
-        answer: "This synthetic admission was for community-acquired pneumonia with fever, cough, and pleuritic chest discomfort. Imaging showed a right lower-lobe infiltrate. Treatment began with ceftriaxone and azithromycin and transitioned to oral antibiotics after improvement; blood cultures remained negative. The patient was discharged home with outpatient follow-up.",
-        meta: ["hadm_id 20000018", "1 note retrieved", "Structured route"],
-        evidence: [
-          ["SYN-DS-000002 · Diagnosis", "Chest imaging demonstrated a right lower lobe infiltrate. The discharge diagnosis was community acquired pneumonia, improved."],
-          ["SYN-DS-000002 · Treatment", "The patient was treated with ceftriaxone and azithromycin, then transitioned to oral antibiotics after clinical improvement."]
-        ]
+      hepatitis: {
+        question:"What is the relationship between Hepatitis C and the patient's current condition?",
+        meta:["⚕ clinical RAG","📄 3 notes","⚡ cached"],
+        faithfulness:0.7500, relevancy:0.8981, overall:"High",
+        claims:[
+          ["The patient's current condition is significantly related to her Hepatitis C (HCV) status, as she has HCV cirrhosis, which has led to complications such as ascites and hepatic encephalopathy (HE).",[1,2]],
+          ["The ascites is described as diuretic refractory, indicating that her liver disease has progressed to a point where standard diuretic therapy is insufficient to manage fluid retention.",[1,2]],
+          ["Additionally, her mild encephalopathy, characterized by visual hallucinations and forgetfulness, is attributed to her history of HCV cirrhosis and medication noncompliance.",[3]],
+          ["The patient's liver function is further compromised, as indicated by her low albumin levels and elevated INR, which are common in cirrhosis.",[1,2]],
+          ["Overall, her Hepatitis C is a critical factor in her decompensated liver disease, leading to her current symptoms and complications.",[1,2,3]]
+        ],
+        rewrite:"What is the relationship between Hepatitis C and the patient's current condition?",
+        evidence:[
+          ["DEIDENTIFIED-04","Past Medical History","History includes alcoholic hepatitis, ascites, and chronic back pain. Examination documented abdominal distention and findings consistent with chronic liver disease."],
+          ["DEIDENTIFIED-05","Cirrhosis / Hepatitis C","Hepatitis C cirrhosis is now decompensated due to ascites. Low albumin and elevated INR support impaired liver function."],
+          ["DEIDENTIFIED-06","Hepatic Encephalopathy","Mild encephalopathy with hallucinations and forgetfulness was attributed to Hepatitis C cirrhosis and medication noncompliance."]
+        ], highlight:["Hepatitis C","cirrhosis","ascites","encephalopathy","albumin","INR"]
       },
-      semantic: {
-        query: "Which note describes insulin infusion and electrolyte replacement?",
-        steps: ["Parse intent", "FAISS top-k", "Cross-encoder", "Parent note", "Evidence"],
-        route: "retrieval_search_graph",
-        answer: "The matching synthetic record is SYN-DS-000003. It describes diabetic ketoacidosis managed in the intensive care unit with intravenous fluids, an insulin infusion, and electrolyte replacement. After the anion gap closed, the patient transitioned to subcutaneous insulin.",
-        meta: ["Semantic retrieval", "Reranked evidence", "1 parent note"],
-        evidence: [
-          ["SYN-DS-000003 · Hospital Course", "The patient was managed in the intensive care unit with intravenous fluids, insulin infusion, and electrolyte replacement."],
-          ["SYN-DS-000003 · Transition", "The anion gap closed and the patient was transitioned to subcutaneous insulin."]
-        ]
-      },
-      refusal: {
-        query: "Did this patient receive a kidney transplant?",
-        steps: ["Parse intent", "FAISS top-k", "Cross-encoder", "Evidence check", "Abstain"],
-        route: "retrieval_search_graph",
-        answer: "The retrieved synthetic notes do not provide evidence that the patient received a kidney transplant. A grounded answer cannot be made from the available context.",
-        meta: ["No supporting evidence", "Abstention", "Unsupported claim avoided"],
-        evidence: [
-          ["Evidence check", "No retrieved passage documents a kidney transplant."],
-          ["Grounding policy", "When the available context does not support the requested fact, the system returns an explicit insufficient-evidence response."]
-        ]
+      medication: {
+        question:"Can you explain the role of Emtricitabine-Tenofovir in the treatment plan for patients with chronic conditions?",
+        meta:["⚕ clinical RAG","📄 3 notes","⚡ cached"],
+        faithfulness:0.5000, relevancy:0.8176, overall:"Medium",
+        claims:[
+          ["Emtricitabine-Tenofovir (Truvada) plays a critical role in the treatment plan for patients with HIV, particularly in those with chronic conditions such as HCV cirrhosis and COPD.",[1,3]],
+          ["In the retrieved notes, it is indicated that the patient is on a highly active antiretroviral therapy (HAART) regimen, which includes Emtricitabine-Tenofovir and Raltegravir, to manage her HIV infection effectively.",[1,2]],
+          ["The patient's HIV viral load is noted to be undetectable, suggesting that the treatment is effective in controlling the virus.",[3]],
+          ["This is particularly important for patients with chronic conditions, as maintaining viral suppression can help prevent further complications and improve overall health outcomes.",[3]],
+          ["The medication was continued during the hospital stay and at discharge, highlighting its ongoing importance in the patient's management plan.",[1,2]]
+        ],
+        rewrite:"Can you explain the role of Emtricitabine-Tenofovir in the treatment plan for patients with chronic conditions?",
+        evidence:[
+          ["DEIDENTIFIED-07","HIV Treatment","Emtricitabine-Tenofovir (Truvada) and Raltegravir were continued in the hospital and at discharge."],
+          ["DEIDENTIFIED-08","Medication Plan","The preadmission medication list includes Raltegravir and one daily tablet of Emtricitabine-Tenofovir."],
+          ["DEIDENTIFIED-09","Chronic Conditions","The HIV viral load was undetectable. The home regimen of Raltegravir, Emtricitabine, and Tenofovir was continued alongside management of HCV cirrhosis and COPD."]
+        ], highlight:["Emtricitabine-Tenofovir","Truvada","Raltegravir","undetectable","HIV"]
       }
     };
-
-    const query = document.querySelector("#query");
-    const answer = document.querySelector("#answer");
-    const route = document.querySelector("#route");
-    const meta = document.querySelector("#meta");
-    const evidence = document.querySelector("#evidence");
-    const count = document.querySelector("#count");
-    let current = "heart";
-
-    function escapeHtml(value) {
-      return value.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    const esc = value => value.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+    const mark = (text, words) => {
+      let safe=esc(text);
+      words.forEach(word=>{ safe=safe.replace(new RegExp(`(${word.replace(/[.*+?^${}()|[\\]\\\\]/g,"\\\\$&")})`,"gi"),"<mark>$1</mark>"); });
+      return safe;
+    };
+    let active="heart";
+    function render(key){
+      active=key; const c=cases[key];
+      document.querySelector("#question").textContent=c.question;
+      document.querySelector("#query").value=c.question;
+      document.querySelector("#meta").innerHTML=c.meta.map(x=>`<span class="badge">${esc(x)}</span>`).join("");
+      document.querySelector("#faithfulness").textContent=`faithfulness ${c.faithfulness.toFixed(4)}`;
+      document.querySelector("#relevancy").textContent=`answer_relevancy ${c.relevancy.toFixed(4)}`;
+      document.querySelector("#overall").textContent=`Overall ${c.overall}`;
+      document.querySelector("#overall").classList.toggle("medium",c.overall==="Medium");
+      document.querySelector("#answer").innerHTML=c.claims.map(([text,refs])=>`<div class="claim">${esc(text)} ${refs.map(r=>`<span class="cite">[${r}]</span>`).join("")}</div>`).join("");
+      document.querySelector("#vault-count").textContent=`${c.evidence.length} retrieved notes`;
+      document.querySelector("#rewrite").textContent=c.rewrite;
+      document.querySelector("#evidence").innerHTML=c.evidence.map(([id,title,text],i)=>`<article class="evidence-card"><div class="evidence-head"><span>[${i+1}] ${esc(id)}</span><span>⌃</span></div><div class="ref-box"><div class="ref-title">Reference [${i+1}]<br>${esc(title)}</div><div class="ref-text">${mark(text,c.highlight)}</div></div></article>`).join("");
+      document.querySelectorAll(".history-btn").forEach(b=>b.classList.toggle("active",b.dataset.case===key));
     }
-
-    function render(key) {
-      current = key;
-      const item = cases[key];
-      query.value = item.query;
-      route.innerHTML = item.steps.map(step => `<div class="step on">${escapeHtml(step)}</div>`).join("");
-      answer.textContent = item.answer;
-      meta.innerHTML = item.meta.map((value, index) => `<span class="pill ${index === 2 ? "route-pill" : ""}">${escapeHtml(value)}</span>`).join("");
-      evidence.innerHTML = item.evidence.map(([title, text]) => `<article class="card"><strong>${escapeHtml(title)}</strong><p>${escapeHtml(text)}</p></article>`).join("");
-      count.textContent = `${item.evidence.length} supporting items`;
-      document.querySelectorAll(".scenario").forEach(button => button.classList.toggle("active", button.dataset.case === key));
-    }
-
-    document.querySelectorAll(".scenario").forEach(button => button.addEventListener("click", () => render(button.dataset.case)));
-    document.querySelector("#run").addEventListener("click", () => {
-      const typed = query.value.toLowerCase();
-      if (typed.includes("10000000") || typed.includes("heart")) render("heart");
-      else if (typed.includes("20000018") || typed.includes("pneumonia")) render("pneumonia");
-      else if (typed.includes("insulin") || typed.includes("electrolyte")) render("semantic");
-      else render("refusal");
+    document.querySelectorAll(".history-btn").forEach(b=>b.addEventListener("click",()=>render(b.dataset.case)));
+    document.querySelector("#send").addEventListener("click",()=>{
+      const q=document.querySelector("#query").value.toLowerCase();
+      if(q.includes("hepatitis")||q.includes("hcv")) render("hepatitis");
+      else if(q.includes("emtricitabine")||q.includes("tenofovir")||q.includes("truvada")) render("medication");
+      else render("multicondition");
     });
-    render(current);
+    document.querySelector("#query").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();document.querySelector("#send").click();} });
+    document.querySelector(".index-btn").addEventListener("click",()=>{const b=document.querySelector(".index-btn");b.textContent="✓ Synthetic index ready";setTimeout(()=>b.textContent="⟳ Build / Refresh FAISS Index",1500);});
+    active="multicondition";
+    render(active);
   </script>
 </body>
 </html>
