@@ -28,7 +28,15 @@ The system uses a FAISS vector store for semantic similarity search, SQLite for 
 
 ## Demo
 
-A short demo video is available here:
+### Interactive Public Demo
+
+[Open the no-sign-in interactive demo](https://kojunghsu.github.io/clinical-note-rag-intelligence/)
+
+The static walkthrough replays curated outputs from the included synthetic dataset and demonstrates intent routing, structured and semantic retrieval paths, grounded answers, abstention behavior, and the Evidence Vault. It does not make API calls or display real clinical data. A separate evaluation section presents metric-only summaries of three selected offline RAGAS cases without exposing source clinical text.
+
+### Video Walkthrough
+
+A short video walkthrough is also available here:
 
 https://github.com/user-attachments/assets/559e7994-86d4-4946-838c-c0c9437c2924
 
@@ -350,4 +358,4 @@ The repository also includes `ragas_evaluation.ipynb` for offline experimentatio
 
 ## Usage and License Note
 
-This repository is shared for academic and portfolio purposes. Please contact the project team before reusing or redistributing the code.
+This repository is shared for portfolio and demonstration purposes.
